@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+    <title>Jeu du Serpent</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        
+        canvas {
+            border: 1px solid #000;
+            display: block;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script>
+        var canvas;
+        var context;
+        var snake;
+        var food;
+        var gridSize = 20;
+        var gridWidth;
+        var gridHeight;
+
+        window.onload = function() {
+            canvas = document.getElementById("gameCanvas");
+            context = canvas.getContext("2d");
+
+            gridWidth = Math.floor(canvas.width / gridSize);
+            gridHeight = Math.floor(canvas.height / gridSize);
+
+            document.addEventListener("keydown", keyDownEvent);
+
+            setInterval(drawGame, 1000 / 10);
+
+            snake = new Snake();
+            food = new Food();
+        }
+
+        function drawGame() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            snake.update();
+            food.draw();
+
+            if (snake.checkCollision()) {
+                snake.reset();
+            }
+
+            snake.draw();
+        }
+
+        function keyDownEvent(event) {
+            var keyPressed = event.keyCode;
+
+            if (keyPressed === 37 && snake.direction !== "right") {
+                snake.direction = "left";
+            } else if (keyPressed === 38 && snake.direction !== "down") {
+                snake.direction = "up";
+            } else if (keyPressed === 39 && snake.direction !== "left") {
+                snake.direction = "right";
+            } else if (keyPressed === 40 && snake.direction !== "up") {
+                snake.direction = "down";
+            }
+        }
+
+        function Snake() {
+            this.x = 0;
+            this.y = 0;
+            this.xSpeed = gridSize;
+            this.ySpeed = 0;
+            this.direction = "right";
+            this.tail = [];
+
+            this.draw = function() {
+                context.fillStyle = "#000";
+
+                for (var i = 0; i < this.tail.length; i++) {
+                    context.fillRect(this.tail[i].x, this.tail[i].y, gridSize, gridSize);
+                }
+
+                context.fillRect(this.x, this.y, gridSize, gridSize);
+            };
+
+            this.update = function() {
+                for (var i = 0; i < this.tail.length - 1; i++) {
+                    this.tail[i] = this.tail[i + 1];
+                }
+
+                this.tail[this.tail.length - 1] = {
+                    x: this.x,
+                    y: this.y
+                };
+
+                this.x += this.xSpeed;
+                this.y += this.ySpeed;
+
+                if (this.x >= canvas.width) {
+                    this.x = 0;
+                } else if (this.x < 0) {
+                    this.x = canvas.width - gridSize;
+                }
+
+                if (this.y >= canvas.height) {
+                    this.y = 0;
+                } else if (this.y < 0) {
+                    this.y = canvas.height - gridSize;
+                }
+            };
+
+            this.checkCollision = function() {
+                for (var i = 0; i < this.tail.length; i++) {
+                    if (this.x === this.tail[i].x && this.y === this.tail[i].y) {
+                        return true;
+                    }
+                }
+
+                return false;
+            };
+
+            this.reset = function() {
+                this.x = 0;
+                this.y = 0;
+                this.xSpeed = gridSize;
+                this.ySpeed = 0;
+                this.direction = "right";
+                this.tail = [];
+            };
+        }
+
+        function Food() {
+            this.x;
+            this.y;
+
+            this.pickLocation = function() {
+                this.x = Math.floor(Math.random() * gridWidth) * gridSize;
+                this.y = Math.floor(Math.random() * gridHeight) * gridSize;
+            };
+
+            this.draw = function() {
+                context.fillStyle = "red";
+                context.fillRect(this.x, this.y, gridSize, gridSize);
+            };
+
+            this.pickLocation();
+        }
+    </script>
+</body>
+
+</html>
